@@ -21,7 +21,7 @@ body {
 }
 
 h1 {
-    border: 1px black solid;
+    /* border: 1px black solid; */
     margin-top: -6rem; /* position adjstment */
 	font-size: 4rem;
     text-align: center;
