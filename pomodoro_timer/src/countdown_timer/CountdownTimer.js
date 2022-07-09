@@ -1,5 +1,6 @@
 import React, { Component } from 'react'
 
+// TODO: Allow user to set the timer value
 class CountdownTimer extends Component {
 
   /* Everything is done in ms (milliseconds!) */
@@ -9,7 +10,7 @@ class CountdownTimer extends Component {
     running_time: 59000,
     timer_started: false,
     running: false,
-    value: ''
+    value: '' // ! Temporary; need to give state for each hr:min:sec
   }
 
   // componentDidMount() {
@@ -33,8 +34,6 @@ class CountdownTimer extends Component {
   }
 
   handleStart(e) {
-    // TODO: make the button disappear when timer starts
-
     this.setState({ original_time: this.state.running_time })
 
     setTimeout(function () {
@@ -73,7 +72,7 @@ class CountdownTimer extends Component {
 
   render() {
     return (
-      // FIXME: Create as new component
+      // FIXME: Separate components into "Timer setup" and "Running timer"
       <div>
         <div className='user-input'>
           <form onSubmit={this.handleStart}>
