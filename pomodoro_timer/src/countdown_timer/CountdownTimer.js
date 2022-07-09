@@ -5,8 +5,8 @@ class CountdownTimer extends Component {
   /* Everything is done in ms (milliseconds!) */
 
   state = {
-    original_time: 59000, // TODO: replace hard code: 5900 ms
-    paused_time: 0,
+    original_time: 0, // TODO: replace hard code: 5900 ms
+    running_time: 59000,
     timer_started: false,
     running: false,
     value: ''
@@ -21,7 +21,7 @@ class CountdownTimer extends Component {
   // }
 
   tick() {
-    this.setState(state => ({ paused_time: state.paused_time -= 10 }));
+    this.setState(state => ({ running_time: state.running_time -= 10 }));
   }
 
   formatTime(secs) {
@@ -34,7 +34,9 @@ class CountdownTimer extends Component {
 
   handleStart(e) {
     // TODO: make the button disappear when timer starts
-    this.setState({ paused_time: this.state.original_time })
+
+    this.setState({ original_time: this.state.running_time })
+
     setTimeout(function () {
       console.log("Executed after 1 second");
       this.interval = setInterval(() => this.tick(), 10); // tick every ms
@@ -54,6 +56,15 @@ class CountdownTimer extends Component {
       clearInterval(this.interval) // clear interval
       this.setState({ running: false });
     }
+  }
+
+  handleReset(e) {
+    this.setState({
+      running_time: this.state.original_time,
+      running: false,
+      timer_started: false,
+      original_time: 0
+    })
   }
 
   handleChange(e) {
@@ -77,7 +88,7 @@ class CountdownTimer extends Component {
 
         <div className='countdown-container'>
           <div className='countdown-element hours-c'>
-            <p className='big-text'>{this.formatTime(this.state.paused_time).hours}</p>
+            <p className='big-text'>{this.formatTime(this.state.running_time).hours}</p>
             <span>hours</span>
           </div>
 
@@ -86,7 +97,7 @@ class CountdownTimer extends Component {
           </div>
 
           <div className='countdown-element mins-c'>
-            <p className='big-text'>{this.formatTime(this.state.paused_time).minutes}</p>
+            <p className='big-text'>{this.formatTime(this.state.running_time).minutes}</p>
             <span>mins</span>
           </div>
 
@@ -95,7 +106,7 @@ class CountdownTimer extends Component {
           </div>
 
           <div className='countdown-element secs-c'>
-            <p className='big-text'>{this.formatTime(this.state.paused_time).seconds}</p>
+            <p className='big-text'>{this.formatTime(this.state.running_time).seconds}</p>
             <span>secs</span>
           </div>
         </div>
@@ -118,6 +129,12 @@ class CountdownTimer extends Component {
             hidden={(this.state.timer_started === false || this.state.running === true ? true : false)}
           >
             Resume!
+          </button>
+          <button
+            onClick={this.handleReset.bind(this)}
+            hidden={(this.state.timer_started === false || this.state.running === true ? true : false)}
+          >
+            RESET
           </button>
         </div>
         <p hidden={this.state.running}>PAUSED</p>
