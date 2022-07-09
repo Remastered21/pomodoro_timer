@@ -7,7 +7,9 @@ class CountdownTimer extends Component {
   state = {
     original_time: 59000, // TODO: replace hard code: 5900 ms
     paused_time: 0,
-    running: false
+    timer_started: false,
+    running: false,
+    value: ''
   }
 
   // componentDidMount() {
@@ -37,7 +39,11 @@ class CountdownTimer extends Component {
       console.log("Executed after 1 second");
       this.interval = setInterval(() => this.tick(), 10); // tick every ms
     }.bind(this), 1000);
-    this.setState({ running: true });
+
+    this.setState({
+      timer_started: true,
+      running: true
+    });
   }
 
   handlePause(e) {
@@ -48,13 +54,25 @@ class CountdownTimer extends Component {
       clearInterval(this.interval) // clear interval
       this.setState({ running: false });
     }
+  }
 
+  handleChange(e) {
+    this.setState({ value: e.target.value });
   }
 
   render() {
     return (
       // FIXME: Create as new component
       <div>
+        <div className='user-input'>
+          <form onSubmit={this.handleStart}>
+            <label>
+              Hour:
+              <input type="text" value={this.state.value} onChange={this.handleChange} />
+            </label>
+          </form>
+        </div>
+
         <h1>Name of the task here</h1>
 
         <div className='countdown-container'>
@@ -81,8 +99,28 @@ class CountdownTimer extends Component {
             <span>secs</span>
           </div>
         </div>
-        <button onClick={this.handleStart.bind(this)}>Start!</button>
-        <button onClick={this.handlePause.bind(this)}>Pause!</button>
+        <div>
+          <button
+            onClick={this.handleStart.bind(this)}
+            hidden={this.state.timer_started}
+          >
+            Start!
+          </button>
+
+          <button
+            onClick={this.handlePause.bind(this)}
+            hidden={(this.state.timer_started === false || this.state.running === false ? true : false)}
+          >
+            Pause
+          </button>
+          <button
+            onClick={this.handlePause.bind(this)}
+            hidden={(this.state.timer_started === false || this.state.running === true ? true : false)}
+          >
+            Resume!
+          </button>
+        </div>
+        <p hidden={this.state.running}>PAUSED</p>
       </div >
     )
   }
