@@ -3,12 +3,11 @@ import React, { Component } from 'react'
 // TODO: Allow user to set the timer value
 class CountdownTimer extends Component {
 
-  /* Everything is done in ms (milliseconds!) */
+  // ! Everything is done in ms (milliseconds!)
 
   state = {
-    original_time: 0, 
-    running_time: 0,
-    timer_started: false,
+    total_running_time: 0,
+    timer_is_initiated: false,
     running: false,
     value_hr: 0, // TODO: display 00:00:00 as initial value
     value_min: 0, // STRETCH: remember timer value from last time (use cookie)
@@ -24,19 +23,25 @@ class CountdownTimer extends Component {
   // }
 
   tick = () => {
-    this.setState(state => ({ running_time: state.running_time -= 10 }));
+    // tickrate @ 10 ms
+    this.setState(state => ({ total_running_time: state.total_running_time -= 10 }));
   }
 
   formatTime = (secs) => {
     let hours = Math.floor(secs / 3600 / 1000);
-    let minutes = Math.floor(secs / 60 / 1000);
+    let minutes = Math.floor(secs / 60 / 1000 % 60);
     let seconds = Math.floor(secs / 1000 % 60);
 
     return { hours, minutes, seconds }
   }
 
   handleStart = (e) => {
-    this.setState({ original_time: this.state.running_time })
+
+    const totalTime = (this.state.value_hr * 3600 + this.state.value_min * 60 + this.state.value_sec) * 1000 // done in millisecond
+    this.setState({
+      total_running_time: totalTime,
+    })
+
     // FIXME: timer doesn't pause properly due to 0.5 second timeout.
     setTimeout(function () {
       console.log("Executed after 1 second");
@@ -44,7 +49,7 @@ class CountdownTimer extends Component {
     }.bind(this), 500);
 
     this.setState({
-      timer_started: true,
+      timer_is_initiated: true,
       running: true
     });
   }
@@ -59,18 +64,14 @@ class CountdownTimer extends Component {
     }
   }
 
-  handleReset(e) {
+  handleReset = (e) => {
     this.setState({
-      running_time: this.state.original_time,
       running: false,
-      timer_started: false,
-    })
-    this.setState({
-      original_time: 0
+      timer_is_initiated: false,
     })
   }
 
-  handleChange(e) {
+  handleChange = (e) => {
     const { name, value } = e.target;
     this.setState({
       [name]: value
@@ -81,15 +82,6 @@ class CountdownTimer extends Component {
     return (
       // FIXME: Separate components into "Timer setup" and "Running timer"
       <div>
-        <div className='user-input'>
-          <form onSubmit={this.handleStart}>
-            <label>
-              Hour:
-              <input type="text" value={this.state.value} onChange={this.handleChange} />
-            </label>
-          </form>
-        </div>
-
         <h1>Name of the task here</h1>
 
         <div className='countdown-container'>
@@ -101,8 +93,9 @@ class CountdownTimer extends Component {
               value={this.state.value_hr}
               onChange={this.handleChange.bind(this)}
               className='big-text'
+              hidden={this.state.running}
             />
-            <p className='big-text' hidden={!this.state.running}>{this.formatTime(this.state.running_time).hours}</p>
+            <p className='big-text' hidden={!this.state.timer_is_initiated}>{this.formatTime(this.state.total_running_time).hours}</p>
             <span>hours</span>
           </div>
 
@@ -111,8 +104,16 @@ class CountdownTimer extends Component {
           </div>
 
           <div className='countdown-element mins-c'>
-            <input name='value_min' id="value_min" type="tel" value={this.state.value_min} onChange={this.handleChange.bind(this)} className='big-text'></input>
-            <p className='big-text' hidden={!this.state.running}>{this.formatTime(this.state.running_time).minutes}</p>
+            <input
+              name='value_min'
+              id="value_min"
+              type="tel"
+              value={this.state.value_min}
+              onChange={this.handleChange.bind(this)}
+              className='big-text'
+              hidden={this.state.running}
+            />
+            <p className='big-text' hidden={!this.state.timer_is_initiated}>{this.formatTime(this.state.total_running_time).minutes}</p>
             <span>mins</span>
           </div>
 
@@ -121,34 +122,42 @@ class CountdownTimer extends Component {
           </div>
 
           <div className='countdown-element secs-c'>
-            <input name='value_sec' id="value_sec" type="tel" value={this.state.value_sec} onChange={this.handleChange.bind(this)} className='big-text'></input>
-            <p className='big-text' hidden={!this.state.running}>{this.formatTime(this.state.running_time).seconds}</p>
+            <input
+              name='value_sec'
+              id="value_sec"
+              type="tel"
+              value={this.state.value_sec}
+              onChange={this.handleChange.bind(this)}
+              className='big-text'
+              hidden={this.state.running}
+            />
+            <p className='big-text' hidden={!this.state.timer_is_initiated}>{this.formatTime(this.state.total_running_time).seconds}</p>
             <span>secs</span>
           </div>
         </div>
         <div>
           <button
             onClick={this.handleStart.bind(this)}
-            hidden={this.state.timer_started}
+            hidden={this.state.timer_is_initiated}
           >
             Start!
           </button>
 
           <button
             onClick={this.handlePause.bind(this)}
-            hidden={(this.state.timer_started === false || this.state.running === false ? true : false)}
+            hidden={(this.state.timer_is_initiated === false || this.state.running === false ? true : false)}
           >
             Pause
           </button>
           <button
             onClick={this.handlePause.bind(this)}
-            hidden={(this.state.timer_started === false || this.state.running === true ? true : false)}
+            hidden={(this.state.timer_is_initiated === false || this.state.running === true ? true : false)}
           >
             Resume!
           </button>
           <button
             onClick={this.handleReset.bind(this)}
-            hidden={(this.state.timer_started === false || this.state.running === true ? true : false)}
+            hidden={(this.state.timer_is_initiated === false || this.state.running === true ? true : false)}
           >
             RESET
           </button>
