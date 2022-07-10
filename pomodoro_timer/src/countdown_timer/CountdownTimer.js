@@ -1,6 +1,7 @@
 import React, { Component } from 'react'
 
-// TODO: Allow user to set the timer value
+// STRETCH: limit typed in value of minute and second to 59.
+// if typed value is > 59, then overwrite it with last typed-in number.
 class CountdownTimer extends Component {
 
   // ! Everything is done in ms (milliseconds!)
@@ -33,7 +34,6 @@ class CountdownTimer extends Component {
   }
 
   formatTime = (secs) => {
-    console.log(this.state.total_running_time);
     let hours = Math.floor(secs / 3600 / 1000);
     let minutes = Math.floor(secs / 60 / 1000 % 60);
     let seconds = Math.floor(secs / 1000 % 60);
