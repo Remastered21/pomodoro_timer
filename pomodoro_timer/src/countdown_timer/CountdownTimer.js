@@ -18,16 +18,22 @@ class CountdownTimer extends Component {
   //   // ? Run When Component is created/inserted in DOM
   // }
 
-  // componentWillUnmount() {
-  //   // ? Run function when component is destroyed/removed from DOM
-  // }
+  componentWillUnmount() {
+    //  ? Run function when component is destroyed/removed from DOM
+    clearInterval(this.interval) // clear interval to prevent memory leak
+  }
 
   tick = () => {
     // tickrate @ 10 ms
     this.setState(state => ({ total_running_time: state.total_running_time -= 10 }));
+    if (this.state.total_running_time < 20) { // Check condition at 20 ms to stop properly at 0 second
+      clearInterval(this.interval);
+      console.log('TIME!');
+    }
   }
 
   formatTime = (secs) => {
+    console.log(this.state.total_running_time);
     let hours = Math.floor(secs / 3600 / 1000);
     let minutes = Math.floor(secs / 60 / 1000 % 60);
     let seconds = Math.floor(secs / 1000 % 60);
@@ -37,7 +43,7 @@ class CountdownTimer extends Component {
 
   handleStart = (e) => {
 
-    const totalTime = (this.state.value_hr * 3600 + this.state.value_min * 60 + this.state.value_sec) * 1000 // done in millisecond
+    const totalTime = (Number(this.state.value_hr) * 3600 + Number(this.state.value_min) * 60 + Number(this.state.value_sec)) * 1000 // done in millisecond
     this.setState({
       total_running_time: totalTime,
     })
@@ -86,14 +92,17 @@ class CountdownTimer extends Component {
 
         <div className='countdown-container'>
           <div className='countdown-element hours-c'>
-            <input
+
+            <input // HOUR
               name='value_hr'
               id="value_hr"
-              type="tel"
+              type="number"
               value={this.state.value_hr}
+              min="0"
+              max="99"
               onChange={this.handleChange.bind(this)}
               className='big-text'
-              hidden={this.state.running}
+              hidden={!this.state.running && !this.state.timer_is_initiated ? false : true}
             />
             <p className='big-text' hidden={!this.state.timer_is_initiated}>{this.formatTime(this.state.total_running_time).hours}</p>
             <span>hours</span>
@@ -107,11 +116,13 @@ class CountdownTimer extends Component {
             <input
               name='value_min'
               id="value_min"
-              type="tel"
+              type="number"
               value={this.state.value_min}
+              min="0"
+              max="59"
               onChange={this.handleChange.bind(this)}
               className='big-text'
-              hidden={this.state.running}
+              hidden={!this.state.running && !this.state.timer_is_initiated ? false : true}
             />
             <p className='big-text' hidden={!this.state.timer_is_initiated}>{this.formatTime(this.state.total_running_time).minutes}</p>
             <span>mins</span>
@@ -125,11 +136,13 @@ class CountdownTimer extends Component {
             <input
               name='value_sec'
               id="value_sec"
-              type="tel"
+              type="number"
               value={this.state.value_sec}
+              min="0"
+              max="59"
               onChange={this.handleChange.bind(this)}
               className='big-text'
-              hidden={this.state.running}
+              hidden={!this.state.running && !this.state.timer_is_initiated ? false : true}
             />
             <p className='big-text' hidden={!this.state.timer_is_initiated}>{this.formatTime(this.state.total_running_time).seconds}</p>
             <span>secs</span>
@@ -162,7 +175,8 @@ class CountdownTimer extends Component {
             RESET
           </button>
         </div>
-        <p hidden={this.state.running}>PAUSED</p>
+        <p hidden={(this.state.timer_is_initiated === false || this.state.running === false ? true : false)}
+        >PAUSED</p>
       </div >
     )
   }
