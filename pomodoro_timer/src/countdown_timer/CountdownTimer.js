@@ -6,11 +6,13 @@ class CountdownTimer extends Component {
   /* Everything is done in ms (milliseconds!) */
 
   state = {
-    original_time: 0, // TODO: replace hard code: 5900 ms
-    running_time: 59000,
+    original_time: 0, 
+    running_time: 0,
     timer_started: false,
     running: false,
-    value: '' // ! Temporary; need to give state for each hr:min:sec
+    value_hr: 0, // TODO: display 00:00:00 as initial value
+    value_min: 0, // STRETCH: remember timer value from last time (use cookie)
+    value_sec: 0,
   }
 
   // componentDidMount() {
@@ -21,11 +23,11 @@ class CountdownTimer extends Component {
   //   // ? Run function when component is destroyed/removed from DOM
   // }
 
-  tick() {
+  tick = () => {
     this.setState(state => ({ running_time: state.running_time -= 10 }));
   }
 
-  formatTime(secs) {
+  formatTime = (secs) => {
     let hours = Math.floor(secs / 3600 / 1000);
     let minutes = Math.floor(secs / 60 / 1000);
     let seconds = Math.floor(secs / 1000 % 60);
@@ -33,13 +35,13 @@ class CountdownTimer extends Component {
     return { hours, minutes, seconds }
   }
 
-  handleStart(e) {
+  handleStart = (e) => {
     this.setState({ original_time: this.state.running_time })
-
+    // FIXME: timer doesn't pause properly due to 0.5 second timeout.
     setTimeout(function () {
       console.log("Executed after 1 second");
       this.interval = setInterval(() => this.tick(), 10); // tick every ms
-    }.bind(this), 1000);
+    }.bind(this), 500);
 
     this.setState({
       timer_started: true,
@@ -47,7 +49,7 @@ class CountdownTimer extends Component {
     });
   }
 
-  handlePause(e) {
+  handlePause = (e) => {
     if (!this.state.running) {
       this.interval = setInterval(() => this.tick(), 10); // tick every ms
       this.setState({ running: true });
@@ -62,12 +64,17 @@ class CountdownTimer extends Component {
       running_time: this.state.original_time,
       running: false,
       timer_started: false,
+    })
+    this.setState({
       original_time: 0
     })
   }
 
   handleChange(e) {
-    this.setState({ value: e.target.value });
+    const { name, value } = e.target;
+    this.setState({
+      [name]: value
+    })
   }
 
   render() {
@@ -87,7 +94,15 @@ class CountdownTimer extends Component {
 
         <div className='countdown-container'>
           <div className='countdown-element hours-c'>
-            <p className='big-text'>{this.formatTime(this.state.running_time).hours}</p>
+            <input
+              name='value_hr'
+              id="value_hr"
+              type="tel"
+              value={this.state.value_hr}
+              onChange={this.handleChange.bind(this)}
+              className='big-text'
+            />
+            <p className='big-text' hidden={!this.state.running}>{this.formatTime(this.state.running_time).hours}</p>
             <span>hours</span>
           </div>
 
@@ -96,7 +111,8 @@ class CountdownTimer extends Component {
           </div>
 
           <div className='countdown-element mins-c'>
-            <p className='big-text'>{this.formatTime(this.state.running_time).minutes}</p>
+            <input name='value_min' id="value_min" type="tel" value={this.state.value_min} onChange={this.handleChange.bind(this)} className='big-text'></input>
+            <p className='big-text' hidden={!this.state.running}>{this.formatTime(this.state.running_time).minutes}</p>
             <span>mins</span>
           </div>
 
@@ -105,7 +121,8 @@ class CountdownTimer extends Component {
           </div>
 
           <div className='countdown-element secs-c'>
-            <p className='big-text'>{this.formatTime(this.state.running_time).seconds}</p>
+            <input name='value_sec' id="value_sec" type="tel" value={this.state.value_sec} onChange={this.handleChange.bind(this)} className='big-text'></input>
+            <p className='big-text' hidden={!this.state.running}>{this.formatTime(this.state.running_time).seconds}</p>
             <span>secs</span>
           </div>
         </div>
