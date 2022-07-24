@@ -21,29 +21,49 @@ body {
 }
 
 h1 {
-    /* border: 1px black solid; */
-    margin-top: -6rem; /* position adjstment */
+	/* border: 1px black solid; */
+	margin-top: -6rem; /* position adjstment */
 	font-size: 4rem;
-    text-align: center;
+	text-align: center;
+}
+
+.page-container {
+	border: white solid 1px;
 }
 
 .countdown-container {
+  border: white dashed 1px;
 	display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    justify-content: center;
+	flex-wrap: wrap;
+	align-items: center;
+	justify-content: center;
 }
 
 .big-text {
-    font-weight: bold;
+	font-weight: bold;
 	font-size: 6rem;
 	line-height: 1;
 	margin: 0 2rem;
 }
 
 .countdown-element {
-    text-align: center;
+	border: 1px black solid;
+	text-align: center;
+	display: flex;
+	flex-direction: column;
 }
+
 .countdown-element span {
-    font-size: 1.2rem;
+	font-size: 1.2rem;
+}
+
+/* Removing arrows in the number input field */
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+	-webkit-appearance: none;
+	margin: 0;
+}
+
+input {
+	text-align: center;
 }

@@ -43,16 +43,12 @@ class CountdownTimer extends Component {
 
   handleStart = (e) => {
 
-    const totalTime = (Number(this.state.value_hr) * 3600 + Number(this.state.value_min) * 60 + Number(this.state.value_sec)) * 1000 // done in millisecond
+    const totalTime = (Number(this.state.value_hr) * 3600 + Number(this.state.value_min) * 60 + Number(this.state.value_sec) + 1) * 1000 // done in millisecond, 1 second is buffer
     this.setState({
       total_running_time: totalTime,
     })
 
-    // FIXME: timer doesn't pause properly due to 0.5 second timeout.
-    setTimeout(function () {
-      console.log("Executed after 1 second");
-      this.interval = setInterval(() => this.tick(), 10); // tick every ms
-    }.bind(this), 500);
+    this.interval = setInterval(() => this.tick(), 10); // tick every ms
 
     this.setState({
       timer_is_initiated: true,
@@ -86,8 +82,9 @@ class CountdownTimer extends Component {
 
   render() {
     return (
-      // FIXME: Separate components into "Timer setup" and "Running timer"
-      <div>
+        // FIXME: Separate components into "Timer setup" and "Running timer"
+        // FIXME: Separate functions and rendered element components
+      <div className='page-container'>
         <h1>Name of the task here</h1>
 
         <div className='countdown-container'>
@@ -177,6 +174,18 @@ class CountdownTimer extends Component {
         </div>
         <p hidden={(this.state.timer_is_initiated === false || this.state.running === false ? true : false)}
         >PAUSED</p>
+
+        <div>
+          <div>
+            Add 10 min
+          </div>
+          <div>
+            Add 1 min
+          </div>
+          <div>
+            Add 15 sec
+          </div>
+        </div>
       </div >
     )
   }
