@@ -1,7 +1,14 @@
 import React, { Component } from 'react'
 
-// STRETCH: limit typed in value of minute and second to 59.
-// if typed value is > 59, then overwrite it with last typed-in number.
+// STRETCH: if typed value exceeds 59, revert to last value typed.
+// STRETCH: remember timer value from last time (use cookie)
+
+
+/* 
+To display 00:00:00, state values are stored as strings.
+Parse as int when value is typed
+Once conditions are met, convert back to string
+*/
 class CountdownTimer extends Component {
 
   // ! Everything is done in ms (milliseconds!)
@@ -10,9 +17,9 @@ class CountdownTimer extends Component {
     total_running_time: 0,
     timer_is_initiated: false,
     running: false,
-    value_hr: 0, // TODO: display 00:00:00 as initial value
-    value_min: 0, // STRETCH: remember timer value from last time (use cookie)
-    value_sec: 0,
+    value_hr: '00',
+    value_min: '00',
+    value_sec: '00',
   }
 
   // componentDidMount() {
@@ -74,37 +81,59 @@ class CountdownTimer extends Component {
   }
 
   handleChange = (e) => {
+    // FIXME: Unable to change value by typing; scrolling the value works.
+    // const limit = 3;
+
     let { name, value } = e.target;
-    
+
+    let temp;
+
     switch (name) {
       case 'value_hr':
-        if (value > 99) {
-          value = 99;
+        temp = +this.state.value_hr;
+        if (value > 98) {
+          value = '99';
           // move cursor to next section 
         }
         break;
+
       case 'value_min':
+        temp = +this.state.value_min;
         if (value > 59) {
-          value = 59;
-          // move cursor to next section
+          value = temp;
         }
+        // move cursor to next section
         break;
+
       case 'value_sec':
+        temp = +this.state.value_sec;
         if (value > 59) {
-          value = 59;
+          value = temp;
           // if value is 6 or higher, stay at 6
           // if value is 5 or lower, repeat between ones and tens digit 
           // eg. 55 <--> 5
         }
         break;
+
       default:
         return;
     }
+
+    if (value.length > 2) {
+      value = temp;
+    }
+    if (value < 10) {
+      value = "0" + value;
+    }
     this.setState({
-      [name]: parseInt(value)
+      [name]: value
+      // [name]: value.slice(0, limit)
     })
   }
 
+  handleFocus = e => {
+    e.target.select();
+  }
   render() {
     return (
       // FIXME: Separate components into "Timer setup" and "Running timer"
@@ -123,6 +152,7 @@ class CountdownTimer extends Component {
               min={0}
               max={99}
               onChange={this.handleChange.bind(this)}
+              onFocus={this.handleFocus.bind(this)}
               className='big-text'
               placeholder='00'
               maxLength={2}
@@ -145,6 +175,7 @@ class CountdownTimer extends Component {
               min="0"
               max="59"
               onChange={this.handleChange.bind(this)}
+              onFocus={this.handleFocus.bind(this)}
               className='big-text'
               placeholder='00'
               maxLength={2}
@@ -167,6 +198,7 @@ class CountdownTimer extends Component {
               min="0"
               max="59"
               onChange={this.handleChange.bind(this)}
+              onFocus={this.handleFocus.bind(this)}
               className='big-text'
               placeholder='00'
               maxLength={2}
