@@ -74,16 +74,41 @@ class CountdownTimer extends Component {
   }
 
   handleChange = (e) => {
-    const { name, value } = e.target;
+    let { name, value } = e.target;
+    
+    switch (name) {
+      case 'value_hr':
+        if (value > 99) {
+          value = 99;
+          // move cursor to next section 
+        }
+        break;
+      case 'value_min':
+        if (value > 59) {
+          value = 59;
+          // move cursor to next section
+        }
+        break;
+      case 'value_sec':
+        if (value > 59) {
+          value = 59;
+          // if value is 6 or higher, stay at 6
+          // if value is 5 or lower, repeat between ones and tens digit 
+          // eg. 55 <--> 5
+        }
+        break;
+      default:
+        return;
+    }
     this.setState({
-      [name]: value
+      [name]: parseInt(value)
     })
   }
 
   render() {
     return (
-        // FIXME: Separate components into "Timer setup" and "Running timer"
-        // FIXME: Separate functions and rendered element components
+      // FIXME: Separate components into "Timer setup" and "Running timer"
+      // FIXME: Separate functions and rendered element components
       <div className='page-container'>
         <h1>Name of the task here</h1>
 
@@ -95,10 +120,12 @@ class CountdownTimer extends Component {
               id="value_hr"
               type="number"
               value={this.state.value_hr}
-              min="0"
-              max="99"
+              min={0}
+              max={99}
               onChange={this.handleChange.bind(this)}
               className='big-text'
+              placeholder='00'
+              maxLength={2}
               hidden={!this.state.running && !this.state.timer_is_initiated ? false : true}
             />
             <p className='big-text' hidden={!this.state.timer_is_initiated}>{this.formatTime(this.state.total_running_time).hours}</p>
@@ -119,6 +146,8 @@ class CountdownTimer extends Component {
               max="59"
               onChange={this.handleChange.bind(this)}
               className='big-text'
+              placeholder='00'
+              maxLength={2}
               hidden={!this.state.running && !this.state.timer_is_initiated ? false : true}
             />
             <p className='big-text' hidden={!this.state.timer_is_initiated}>{this.formatTime(this.state.total_running_time).minutes}</p>
@@ -139,6 +168,8 @@ class CountdownTimer extends Component {
               max="59"
               onChange={this.handleChange.bind(this)}
               className='big-text'
+              placeholder='00'
+              maxLength={2}
               hidden={!this.state.running && !this.state.timer_is_initiated ? false : true}
             />
             <p className='big-text' hidden={!this.state.timer_is_initiated}>{this.formatTime(this.state.total_running_time).seconds}</p>
@@ -172,7 +203,7 @@ class CountdownTimer extends Component {
             RESET
           </button>
         </div>
-        <p hidden={(this.state.timer_is_initiated === false || this.state.running === false ? true : false)}
+        <p hidden={(this.state.timer_is_initiated === false || this.state.running === true ? true : false)}
         >PAUSED</p>
 
         <div>

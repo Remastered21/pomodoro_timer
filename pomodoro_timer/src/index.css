@@ -32,7 +32,7 @@ h1 {
 }
 
 .countdown-container {
-  border: white dashed 1px;
+	border: white dashed 1px;
 	display: flex;
 	flex-wrap: wrap;
 	align-items: center;
@@ -66,4 +66,7 @@ input::-webkit-inner-spin-button {
 
 input {
 	text-align: center;
+	background-color: transparent;
+	border: transparent;
+	width: 4ch;
 }
