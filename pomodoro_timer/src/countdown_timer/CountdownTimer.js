@@ -113,6 +113,7 @@ class CountdownTimer extends Component {
       })
       this.focus(e.target.name);
     } else if (e.target.value.toString().length > 1 && e.key >= 0) {
+      // FIXME: focus shifts too early
       console.log("over 59")
       this.setState({
         [e.target.name]: parseInt(e.target.value.toString() + e.key.toString())
