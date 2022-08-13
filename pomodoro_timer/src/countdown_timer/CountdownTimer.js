@@ -2,13 +2,6 @@ import React, { Component } from 'react'
 
 // STRETCH: if typed value exceeds 59, revert to last value typed.
 // STRETCH: remember timer value from last time (use cookie)
-
-
-/* 
-To display 00:00:00, state values are stored as strings.
-Parse as int when value is typed
-Once conditions are met, convert back to string
-*/
 class CountdownTimer extends Component {
 
   // ! Everything is done in ms (milliseconds!)
@@ -21,6 +14,9 @@ class CountdownTimer extends Component {
     value_min: '00',
     value_sec: '00',
   }
+
+  min_input = React.createRef();
+  sec_input = React.createRef();
 
   // componentDidMount() {
   //   // ? Run When Component is created/inserted in DOM
@@ -36,6 +32,7 @@ class CountdownTimer extends Component {
     this.setState(state => ({ total_running_time: state.total_running_time -= 10 }));
     if (this.state.total_running_time < 20) { // Check condition at 20 ms to stop properly at 0 second
       clearInterval(this.interval);
+      alert("TIME!");
       console.log('TIME!');
     }
   }
@@ -45,11 +42,37 @@ class CountdownTimer extends Component {
     let minutes = Math.floor(secs / 60 / 1000 % 60);
     let seconds = Math.floor(secs / 1000 % 60);
 
+    // if minutes is < 10, add leading zero
+    // if seconds is < 10, add leading zero
+    if (minutes < 10) {
+      minutes = "0" + minutes
+    }
+    if (seconds < 10) {
+      seconds = "0" + seconds
+    }
+
     return { hours, minutes, seconds }
   }
 
-  handleStart = (e) => {
+  focus(time_type) {
 
+    switch (time_type) {
+      case "value_hr":
+        this.min_input.current.focus();
+        console.log("focus to min")
+        break;
+
+      case "value_min":
+        this.sec_input.current.focus();
+        console.log("focus to sec")
+        break;
+
+      default:
+        break;
+    }
+  }
+
+  handleStart = (e) => {
     const totalTime = (Number(this.state.value_hr) * 3600 + Number(this.state.value_min) * 60 + Number(this.state.value_sec) + 1) * 1000 // done in millisecond, 1 second is buffer
     this.setState({
       total_running_time: totalTime,
@@ -80,60 +103,77 @@ class CountdownTimer extends Component {
     })
   }
 
+  handleKeyDown = (e) => {
+    // handles focus change of the input field
+    console.log("keydown fired");
+    if (e.key > 5) { // we skip to next field since next input after this will be over 60
+      console.log("keydown > 5")
+      this.setState({
+        [e.target.name]: "0" + e.key
+      })
+      this.focus(e.target.name);
+    } else if (e.target.value.toString().length > 1 && e.key >= 0) {
+      console.log("over 59")
+      this.setState({
+        [e.target.name]: parseInt(e.target.value.toString() + e.key.toString())
+      })
+      this.focus(e.target.name);
+    }
+  }
+
   handleChange = (e) => {
-    // FIXME: Unable to change value by typing; scrolling the value works.
-    // const limit = 3;
-
+    console.log("change of field handled")
     let { name, value } = e.target;
+    let parsed_value = parseInt(value);
+    // console.log("key pressed", e.key)
 
-    let temp;
-
-    switch (name) {
-      case 'value_hr':
-        temp = +this.state.value_hr;
-        if (value > 98) {
-          value = '99';
-          // move cursor to next section 
+    switch (name) { // set max value depending on type (name) of value
+      case "value_hr":
+        if (parsed_value.toString().length > 1) {
+          this.focus(name);
         }
         break;
 
-      case 'value_min':
-        temp = +this.state.value_min;
-        if (value > 59) {
-          value = temp;
+      case "value_min":
+        // If next typed digit will make the value >= 60, focus the next input field.
+        // FIXME: scrolling will cause focus shift past 6
+        // console.log("parsed value", parsed_value);
+        // console.log("strign length", parsed_value.toString().length);
+        if (parsed_value > 59 && parsed_value.toString().length > 1) {
+          console.log("condition met");
+          this.focus(name);
         }
-        // move cursor to next section
         break;
 
-      case 'value_sec':
-        temp = +this.state.value_sec;
-        if (value > 59) {
-          value = temp;
-          // if value is 6 or higher, stay at 6
-          // if value is 5 or lower, repeat between ones and tens digit 
-          // eg. 55 <--> 5
+      case "value_sec":
+        // console.log(parsed_value)
+        if (parsed_value > 5) { //
+          e.target.select();
+          value = this.state.value_sec // revert to previous digit
         }
         break;
 
       default:
-        return;
+        break;
     }
 
-    if (value.length > 2) {
-      value = temp;
+    if (parsed_value < 10) { // add leading zeroes when single digit
+      value = "0" + parsed_value;
     }
-    if (value < 10) {
-      value = "0" + value;
+    else if (parsed_value > 9) { // parse it back to string (leading zero removed)
+      value = parsed_value.toString();
     }
-    this.setState({
+
+    console.log("value: ", value)
+    this.setState({ // set the value to state
       [name]: value
-      // [name]: value.slice(0, limit)
     })
   }
 
   handleFocus = e => {
     e.target.select();
   }
+
   render() {
     return (
       // FIXME: Separate components into "Timer setup" and "Running timer"
@@ -168,12 +208,14 @@ class CountdownTimer extends Component {
 
           <div className='countdown-element mins-c'>
             <input
+              ref={this.min_input}
               name='value_min'
               id="value_min"
               type="number"
               value={this.state.value_min}
               min="0"
               max="59"
+              onKeyDown={this.handleKeyDown.bind(this)}
               onChange={this.handleChange.bind(this)}
               onFocus={this.handleFocus.bind(this)}
               className='big-text'
@@ -191,6 +233,7 @@ class CountdownTimer extends Component {
 
           <div className='countdown-element secs-c'>
             <input
+              ref={this.sec_input}
               name='value_sec'
               id="value_sec"
               type="number"
