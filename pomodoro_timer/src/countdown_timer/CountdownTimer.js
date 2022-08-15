@@ -13,6 +13,8 @@ class CountdownTimer extends Component {
     value_hr: '00',
     value_min: '00',
     value_sec: '00',
+    temp_value: '',
+    key_pressed: false
   }
 
   min_input = React.createRef();
@@ -37,13 +39,17 @@ class CountdownTimer extends Component {
     }
   }
 
-  formatTime = (secs) => {
+  formatTime = (secs) => { // This function fires when timer is started.
     let hours = Math.floor(secs / 3600 / 1000);
     let minutes = Math.floor(secs / 60 / 1000 % 60);
     let seconds = Math.floor(secs / 1000 % 60);
 
     // if minutes is < 10, add leading zero
     // if seconds is < 10, add leading zero
+    // if (hours < 10) {
+    //   hours = "0" + hours
+    // }
+
     if (minutes < 10) {
       minutes = "0" + minutes
     }
@@ -54,17 +60,16 @@ class CountdownTimer extends Component {
     return { hours, minutes, seconds }
   }
 
-  focus(time_type) {
-
-    switch (time_type) {
+  focus_shifter(current_focus) { // Switches focus from one input to another
+    switch (current_focus) {
       case "value_hr":
+        // focus to min
         this.min_input.current.focus();
-        console.log("focus to min")
         break;
 
       case "value_min":
+        // focus to sec
         this.sec_input.current.focus();
-        console.log("focus to sec")
         break;
 
       default:
@@ -106,73 +111,99 @@ class CountdownTimer extends Component {
   handleKeyDown = (e) => {
     // handles focus change of the input field
     console.log("keydown fired");
-    if (e.key > 5) { // we skip to next field since next input after this will be over 60
-      console.log("keydown > 5")
-      this.setState({
-        [e.target.name]: "0" + e.key
-      })
-      this.focus(e.target.name);
-    } else if (e.target.value.toString().length > 1 && e.key >= 0) {
-      // FIXME: focus shifts too early
-      console.log("over 59")
-      this.setState({
-        [e.target.name]: parseInt(e.target.value.toString() + e.key.toString())
-      })
-      this.focus(e.target.name);
-    }
-  }
-
-  handleChange = (e) => {
-    console.log("change of field handled")
-    let { name, value } = e.target;
-    let parsed_value = parseInt(value);
-    // console.log("key pressed", e.key)
-
-    switch (name) { // set max value depending on type (name) of value
-      case "value_hr":
-        if (parsed_value.toString().length > 1) {
-          this.focus(name);
-        }
-        break;
-
-      case "value_min":
-        // If next typed digit will make the value >= 60, focus the next input field.
-        // FIXME: scrolling will cause focus shift past 6
-        // console.log("parsed value", parsed_value);
-        // console.log("strign length", parsed_value.toString().length);
-        if (parsed_value > 59 && parsed_value.toString().length > 1) {
-          console.log("condition met");
-          this.focus(name);
-        }
-        break;
-
-      case "value_sec":
-        // console.log(parsed_value)
-        if (parsed_value > 5) { //
-          e.target.select();
-          value = this.state.value_sec // revert to previous digit
-        }
-        break;
-
-      default:
-        break;
-    }
-
-    if (parsed_value < 10) { // add leading zeroes when single digit
-      value = "0" + parsed_value;
-    }
-    else if (parsed_value > 9) { // parse it back to string (leading zero removed)
-      value = parsed_value.toString();
-    }
-
-    console.log("value: ", value)
-    this.setState({ // set the value to state
-      [name]: value
+    // TODO: ignore inputs other than numbers
+    this.setState({
+      key_pressed: true,
+      temp_value: e.key
     })
   }
 
-  handleFocus = e => {
+  handleChange = (e) => {
+    let { name, value, max, maxLength } = e.target;
+
+    // * done
+    this.setState({
+      [name]: value,
+      key_pressed: false,
+      temp_value: false
+    })
+
+    if (value.toString().length > maxLength) { // If new input will exceed 3 digit
+      console.log("maxLength Firing")
+      if (name === "value_sec" && this.state.temp_value > max.toString()[0]) {
+        this.setState({
+          [name]: "0" + this.state.temp_value,
+          temp_value: '', // reset
+          key_pressed: false // reset
+        })
+      } else {
+        this.setState({
+          [name]: this.state.temp_value,
+          temp_value: '',
+          key_pressed: false // reset
+
+        })
+        return false;
+      }
+    }
+
+    // * done
+    if (this.state.temp_value > max.toString()[0]) { // if the input exceeds first digit of max value
+      if (name === "value_sec") {
+        this.setState({
+          [name]: "0" + this.state.temp_value,
+          temp_value: '', // reset
+          key_pressed: false // reset
+        })
+      } else {
+        this.focus_shifter(name); // onBlur handles leading zeros
+      }
+    }
+
+    // * done
+    if (value.toString().length > 1 && this.state.key_pressed === true) { // When key is pressed + 2 digits are reached
+      console.log("max char limit");
+      this.setState({
+        temp_value: '', // reset
+        key_pressed: false // reset
+      })
+      this.focus_shifter(name)
+    } else if (value.toString().length < 2 && this.state.key_pressed === false) { // add leading zero When key is not pressed (scrolled)
+      this.setState({
+        [name]: "0" + value,
+        temp_value: '', // reset
+        key_pressed: false // reset
+      })
+    }
+  }
+
+  handleOnFocus = e => {
     e.target.select();
+  }
+
+  handleScroll = e => {
+    console.log(e.target.name)
+    this.setState({
+      key_pressed: false,
+      // [e.target.name]: "0" + e.target.value
+    })
+  }
+
+  handleBlur = e => {
+    console.log('FOCUS OUT')
+    let { name, value } = e.target;
+
+    if (value === '') {
+      this.setState({ // set the value to state
+        [name]: '00'
+      })
+    }
+    else if (value.toString().length === 1) {
+      console.log("adding leading zero")
+      this.setState({ // set the value to state
+        [name]: "0" + value
+      })
+    }
   }
 
   render() {
@@ -192,10 +223,12 @@ class CountdownTimer extends Component {
               value={this.state.value_hr}
               min={0}
               max={99}
+              onKeyDown={this.handleKeyDown.bind(this)}
               onChange={this.handleChange.bind(this)}
-              onFocus={this.handleFocus.bind(this)}
+              onFocus={this.handleOnFocus.bind(this)}
+              onBlur={this.handleBlur.bind(this)}
+              onScroll={this.handleScroll.bind(this)}
               className='big-text'
-              placeholder='00'
               maxLength={2}
               hidden={!this.state.running && !this.state.timer_is_initiated ? false : true}
             />
@@ -218,9 +251,9 @@ class CountdownTimer extends Component {
               max="59"
               onKeyDown={this.handleKeyDown.bind(this)}
               onChange={this.handleChange.bind(this)}
-              onFocus={this.handleFocus.bind(this)}
+              onFocus={this.handleOnFocus.bind(this)}
+              onBlur={this.handleBlur.bind(this)}
               className='big-text'
-              placeholder='00'
               maxLength={2}
               hidden={!this.state.running && !this.state.timer_is_initiated ? false : true}
             />
@@ -241,10 +274,12 @@ class CountdownTimer extends Component {
               value={this.state.value_sec}
               min="0"
               max="59"
+              onKeyDown={this.handleKeyDown.bind(this)}
               onChange={this.handleChange.bind(this)}
-              onFocus={this.handleFocus.bind(this)}
+              onFocus={this.handleOnFocus.bind(this)}
+              onBlur={this.handleBlur.bind(this)}
+              onClick={this.handleOnFocus.bind(this)}
               className='big-text'
-              placeholder='00'
               maxLength={2}
               hidden={!this.state.running && !this.state.timer_is_initiated ? false : true}
             />
