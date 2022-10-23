@@ -13,7 +13,7 @@ class CountdownTimer extends Component {
     value_hr: '00',
     value_min: '00',
     value_sec: '00',
-    temp_value: '',
+    temp_value_typed: '',
     key_pressed: false
   }
 
@@ -35,14 +35,13 @@ class CountdownTimer extends Component {
     if (this.state.total_running_time < 20) { // Check condition at 20 ms to stop properly at 0 second
       clearInterval(this.interval);
       alert("TIME!");
-      console.log('TIME!');
     }
   }
 
-  formatTime = (secs) => { // This function fires when timer is started.
-    let hours = Math.floor(secs / 3600 / 1000);
-    let minutes = Math.floor(secs / 60 / 1000 % 60);
-    let seconds = Math.floor(secs / 1000 % 60);
+  formatTime = (ms) => { // This function fires when timer is started.
+    let hours = Math.floor(ms / 3600 / 1000);
+    let minutes = Math.floor(ms / 60 / 1000 % 60);
+    let seconds = Math.floor(ms / 1000 % 60);
 
     // if minutes is < 10, add leading zero
     // if seconds is < 10, add leading zero
@@ -53,6 +52,7 @@ class CountdownTimer extends Component {
     if (minutes < 10) {
       minutes = "0" + minutes
     }
+
     if (seconds < 10) {
       seconds = "0" + seconds
     }
@@ -60,8 +60,8 @@ class CountdownTimer extends Component {
     return { hours, minutes, seconds }
   }
 
-  focus_shifter(current_focus) { // Switches focus from one input to another
-    switch (current_focus) {
+  shiftFocus(name_currentFocus) { // Switches focus from one input to another
+    switch (name_currentFocus) {
       case "value_hr":
         // focus to min
         this.min_input.current.focus();
@@ -77,7 +77,7 @@ class CountdownTimer extends Component {
     }
   }
 
-  handleStart = (e) => {
+  clockStart = (e) => {
     const totalTime = (Number(this.state.value_hr) * 3600 + Number(this.state.value_min) * 60 + Number(this.state.value_sec) + 1) * 1000 // done in millisecond, 1 second is buffer
     this.setState({
       total_running_time: totalTime,
@@ -91,7 +91,7 @@ class CountdownTimer extends Component {
     });
   }
 
-  handlePause = (e) => {
+  clockPause = (e) => {
     if (!this.state.running) {
       this.interval = setInterval(() => this.tick(), 10); // tick every ms
       this.setState({ running: true });
@@ -101,7 +101,7 @@ class CountdownTimer extends Component {
     }
   }
 
-  handleReset = (e) => {
+  clockReset = (e) => {
     this.setState({
       running: false,
       timer_is_initiated: false,
@@ -109,7 +109,8 @@ class CountdownTimer extends Component {
   }
 
   handleKeyDown = (e) => {
-    // handles focus change of the input field
+    // save key pressed as temp_value
+    // handleChange() is called after this function is complete
     console.log("keydown fired");
     // TODO: ignore inputs other than numbers
     this.setState({
@@ -117,17 +118,20 @@ class CountdownTimer extends Component {
       temp_value: e.key
     })
   }
-
+  
   handleChange = (e) => {
+    // called after handleKeyDown() function is finished.
+    // reset temp_value
+    // 
+    
     let { name, value, max, maxLength } = e.target;
-
+  
     // * done
     this.setState({
       [name]: value,
-      key_pressed: false,
       temp_value: false
     })
-
+  
     if (value.toString().length > maxLength) { // If new input will exceed 3 digit
       console.log("maxLength Firing")
       if (name === "value_sec" && this.state.temp_value > max.toString()[0]) {
@@ -141,12 +145,12 @@ class CountdownTimer extends Component {
           [name]: this.state.temp_value,
           temp_value: '',
           key_pressed: false // reset
-
+  
         })
         return false;
       }
     }
-
+  
     // * done
     if (this.state.temp_value > max.toString()[0]) { // if the input exceeds first digit of max value
       if (name === "value_sec") {
@@ -156,10 +160,10 @@ class CountdownTimer extends Component {
           key_pressed: false // reset
         })
       } else {
-        this.focus_shifter(name); // onBlur handles leading zeros
+        this.shiftFocus(name); // onBlur handles leading zeros
       }
     }
-
+  
     // * done
     if (value.toString().length > 1 && this.state.key_pressed === true) { // When key is pressed + 2 digits are reached
       console.log("max char limit");
@@ -167,30 +171,31 @@ class CountdownTimer extends Component {
         temp_value: '', // reset
         key_pressed: false // reset
       })
-      this.focus_shifter(name)
+      this.shiftFocus(name)
     } else if (value.toString().length < 2 && this.state.key_pressed === false) { // add leading zero When key is not pressed (scrolled)
       this.setState({
-        [name]: "0" + value,
+        [name]: "0" + value, 
         temp_value: '', // reset
         key_pressed: false // reset
       })
     }
   }
-
+  
+  // * When field in focus
   handleOnFocus = e => {
+    // Select all
     e.target.select();
   }
 
   handleScroll = e => {
-    console.log(e.target.name)
     this.setState({
       key_pressed: false,
       // [e.target.name]: "0" + e.target.value
     })
   }
 
+  // * when input field is unfocused (clicked out or focus is moved to next field)
   handleBlur = e => {
-    console.log('FOCUS OUT')
     let { name, value } = e.target;
 
     if (value === '') {
@@ -199,10 +204,23 @@ class CountdownTimer extends Component {
       })
     }
     else if (value.toString().length === 1) {
-      console.log("adding leading zero")
       this.setState({ // set the value to state
         [name]: "0" + value
       })
+    }
+  }
+
+  handleAddTime = (time, e) => {
+    switch (time) {
+      case 10:
+        this.handleChange("value_min", time,)
+      case 1:
+
+      case 15:
+
+      default:
+        return
+
     }
   }
 
@@ -217,6 +235,8 @@ class CountdownTimer extends Component {
           <div className='countdown-element hours-c'>
 
             <input // HOUR
+              maxLength={2}
+              ref={this.hr_input}
               name='value_hr'
               id="value_hr"
               type="number"
@@ -224,12 +244,11 @@ class CountdownTimer extends Component {
               min={0}
               max={99}
               onKeyDown={this.handleKeyDown.bind(this)}
-              onChange={this.handleChange.bind(this)}
+              onChange={e => this.handleChange(e)} // better way
               onFocus={this.handleOnFocus.bind(this)}
               onBlur={this.handleBlur.bind(this)}
               onScroll={this.handleScroll.bind(this)}
               className='big-text'
-              maxLength={2}
               hidden={!this.state.running && !this.state.timer_is_initiated ? false : true}
             />
             <p className='big-text' hidden={!this.state.timer_is_initiated}>{this.formatTime(this.state.total_running_time).hours}</p>
@@ -242,6 +261,7 @@ class CountdownTimer extends Component {
 
           <div className='countdown-element mins-c'>
             <input
+              maxLength={2}
               ref={this.min_input}
               name='value_min'
               id="value_min"
@@ -254,7 +274,6 @@ class CountdownTimer extends Component {
               onFocus={this.handleOnFocus.bind(this)}
               onBlur={this.handleBlur.bind(this)}
               className='big-text'
-              maxLength={2}
               hidden={!this.state.running && !this.state.timer_is_initiated ? false : true}
             />
             <p className='big-text' hidden={!this.state.timer_is_initiated}>{this.formatTime(this.state.total_running_time).minutes}</p>
@@ -267,6 +286,7 @@ class CountdownTimer extends Component {
 
           <div className='countdown-element secs-c'>
             <input
+              maxLength={2}
               ref={this.sec_input}
               name='value_sec'
               id="value_sec"
@@ -278,9 +298,8 @@ class CountdownTimer extends Component {
               onChange={this.handleChange.bind(this)}
               onFocus={this.handleOnFocus.bind(this)}
               onBlur={this.handleBlur.bind(this)}
-              onClick={this.handleOnFocus.bind(this)}
+              onClick={e => this.handleOnFocus(e)}
               className='big-text'
-              maxLength={2}
               hidden={!this.state.running && !this.state.timer_is_initiated ? false : true}
             />
             <p className='big-text' hidden={!this.state.timer_is_initiated}>{this.formatTime(this.state.total_running_time).seconds}</p>
@@ -289,26 +308,26 @@ class CountdownTimer extends Component {
         </div>
         <div>
           <button
-            onClick={this.handleStart.bind(this)}
+            onClick={this.clockStart.bind(this)}
             hidden={this.state.timer_is_initiated}
           >
             Start!
           </button>
 
           <button
-            onClick={this.handlePause.bind(this)}
+            onClick={this.clockPause.bind(this)}
             hidden={(this.state.timer_is_initiated === false || this.state.running === false ? true : false)}
           >
             Pause
           </button>
           <button
-            onClick={this.handlePause.bind(this)}
+            onClick={this.clockPause.bind(this)}
             hidden={(this.state.timer_is_initiated === false || this.state.running === true ? true : false)}
           >
             Resume!
           </button>
           <button
-            onClick={this.handleReset.bind(this)}
+            onClick={this.clockReset.bind(this)}
             hidden={(this.state.timer_is_initiated === false || this.state.running === true ? true : false)}
           >
             RESET
@@ -318,7 +337,9 @@ class CountdownTimer extends Component {
         >PAUSED</p>
 
         <div>
-          <div>
+          <div
+            onClick={this.handleAddTime.bind(this, 10)}
+          >
             Add 10 min
           </div>
           <div>
